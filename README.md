@@ -1,1 +1,2 @@
 # churn
+Business relationships are crucial for success, and software for managing those relationships is becoming both more important and more sophisticated. This project investigates churn in business-to-business “B2B” relationships.
