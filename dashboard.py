@@ -37,7 +37,7 @@ conn = mysql.connector.connect(
 
 # Features
 
-dfResults = pickle.load(open("results.p","rb"))
+dfResults = pickle.load(open("results_int.p","rb"))
 print dfResults
 #dfResults['tenant_client'] = dfResults['tenant_id'] + '_' + dfResults['client_id']
 dfResults['tenant_client'] = dfResults['tenant_id'].astype(str) + '_' + dfResults['client_id'].astype(str)
@@ -211,6 +211,7 @@ class SimpleApp(server.App):
         fig, ax = plt.subplots()
         ax.scatter(x=daily.index, y=daily.id, label='raw data')
         ax.plot(rollMean, color='red', label='rolling mean (7-day window')
+        ax.xaxis.rotation=45
         ax.set_xlabel('time')
         ax.set_ylabel('interaction count')
         title=str(tenant_client_in) + '  ' + status + ' (Score: ' + str(health_score) + ')'
