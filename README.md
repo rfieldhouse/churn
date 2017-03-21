@@ -33,6 +33,7 @@ The private database requires four environment variables to be set to access the
 TOOLS
 
 Front end: Spyre (based on Cherrypy and jinja2)
+
 Back end: Python, MySQL
 
 VERSIONING
@@ -50,3 +51,4 @@ Thanks to fellows and program directors at Insight Data Science.
 MORE INFO:
 Read a project report here:
 https://medium.com/@robert.fieldhouse/engagement-and-churn-in-b2b-relationships-97677f4e8704#.3g7tlcwmw
+
