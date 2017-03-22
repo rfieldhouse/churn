@@ -4,19 +4,33 @@ import random
 import os
 import logging
 import collections
-
-import pandas as pd
-import numpy as np
-from matplotlib import pyplot as plt
-import matplotlib.image as mpimg
-import seaborn as sns
-
+import cherrypy
+from spyre import server
+import glob
+import os
+import logging
+import collections
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
 import mysql.connector
-
-import cherrypy
-from spyre import server
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import numpy as np
+import pandas as pd
+import qgrid
+import matplotlib
+from matplotlib import pyplot as plt
+import matplotlib.image as mpimg
+import prettyplotlib as ppl
+import statsmodels.api as sm
+import seaborn as sns
+from bokeh import *
+from bokeh import resources as r
+from bokeh.resources import CDN
+from bokeh.embed import components
+from bokeh.plotting import *
+from bokeh.models import *
 
 
 
@@ -62,7 +76,7 @@ class SimpleApp(server.App):
                 #     "action_id" : "get_random",
                 # },
                 { "type":"text",
-                    "label":"Type in a tenant-client relationship id",
+                    "label":"Type in an integer or tenant-client id",
                     'variable_name':'tenant_client_in',
                     "value":starter, 
                     "key":"tenant_client",
@@ -87,7 +101,7 @@ class SimpleApp(server.App):
                     'control_id' : 'get_slides'}
             ]
 
-    tabs = ['Relationship_Plot','Relationship_Table','About','Slides'] #'',
+    tabs = ['About','Relationship_Plot','Relationship_Table','Slides'] #'',
 
     outputs = [
                 # {'type':'html',
@@ -141,24 +155,27 @@ class SimpleApp(server.App):
         print 'IMAGE'
 
         fig = mpimg.imread('ContentUnavailable.jpg')
-        tenant_client_in=''
         tenant_client_in = params['tenant_client_in']
         print 'tenant_client_in'
         print tenant_client_in
 
-        # if (tenant_client_in ==''):
-        #     print 'RANDOM'
-        #     relationships = set(dfResults['tenant_client'])
-        #     tenant_client_in = str(random.sample(relationships, 1)[0])
-        #     print tenant_client_in
-        #     len(set(dfResults['tenant_client']))
-        # else:
-        #     print tenant_client_in
-
-        tenant_client_res = dfResults[dfResults['tenant_client'] == tenant_client_in]
-        print tenant_client_res
-
-        health_score = str(tenant_client_res.churn_no).split()[1]
+        try:
+            tenant_client_in = int(tenant_client_in)
+            tenant_client_res = dfResults.loc[tenant_client_in]
+            tenant_client_res = pd.DataFrame(tenant_client_res)
+            tenant_client_res = pd.DataFrame.transpose(tenant_client_res).reset_index()
+            print tenant_client_res
+            tenant_id = str(tenant_client_res['tenant_id'].ix[0,:])
+            client_id = str(tenant_client_res['client_id'].ix[0,:])
+            print tenant_id
+            print client_id
+        except:
+            tenant_client_res = dfResults[dfResults['tenant_client'] == tenant_client_in]
+            print tenant_client_res
+            tenant_id = tenant_client_in.split('_')[0]
+            client_id = tenant_client_in.split('_')[1]
+        
+        health_score = str(tenant_client_res['churn_no']).split()[1]
         print
         print 'health_score'
         print health_score
@@ -168,9 +185,6 @@ class SimpleApp(server.App):
             status = 'healthy'
         else:
             status = 'unhealthy'
-
-        tenant_id = tenant_client_in.split('_')[0]
-        client_id = tenant_client_in.split('_')[1]
 
         sql_query = """SELECT id, created_date_time FROM client_note WHERE client_id="""+str(client_id)+""";"""
         dfClientNote = dict()
@@ -214,7 +228,7 @@ class SimpleApp(server.App):
         ax.xaxis.rotation=45
         ax.set_xlabel('time')
         ax.set_ylabel('interaction count')
-        title=str(tenant_client_in) + '  ' + status + ' (Score: ' + str(health_score) + ')'
+        title=str(tenant_id) +'-' + (client_id) + '  ' + status + ' (Score: ' + str(health_score) + ')'
         plt.title(title)
         # ax.text(status)
 
@@ -232,29 +246,38 @@ class SimpleApp(server.App):
     def getData(self, params):
         print 'DATA'
 
-        tenant_client_in=''
         tenant_client_in = params['tenant_client_in']
         print 'tenant_client_in'
         print tenant_client_in
-        tenant_client_res = pd.DataFrame()
 
-        # if (tenant_client_in ==''):
-        #     print 'RANDOM'
-        #     dfResults['tenant_client'] = dfResults['tenant_id'] + '_' + dfResults['client_id']
-        #     relationships = set(dfResults['tenant_client'])
-        #     tenant_client_in = str(random.sample(relationships, 1)[0])
-        #     print tenant_client_in
-        #     len(set(dfResults['tenant_client']))
-        # else:
-        #     print tenant_client_in
+        # try:
+        #     tenant_client_in = int(tenant_client_in)
+        #     #tenant_client_res = dfResults[dfResults['tenant_client'] == tenant_client_in]
+        #     tenant_client_res = dfResults.loc[tenant_client_in] #,:]
+        #     tenant_client_res = pd.DataFrame(tenant_client_res)
+        # except:
+        #     tenant_client_res = dfResults[dfResults['tenant_client'] == tenant_client_in]        
+        #     tenant_client_res = pd.DataFrame.transpose(tenant_client_res).reset_index()
+        # print tenant_client_res
 
-        tenant_client_res = dfResults[dfResults['tenant_client'] == tenant_client_in]
+        try:
+            tenant_client_in = int(tenant_client_in)
+            tenant_client_res = dfResults.loc[tenant_client_in]
+            tenant_client_res = pd.DataFrame(tenant_client_res)
+            tenant_client_res = pd.DataFrame.transpose(tenant_client_res).reset_index()
+            print tenant_client_res
+            tenant_id = str(tenant_client_res['tenant_id'].ix[0,:])
+            client_id = str(tenant_client_res['client_id'].ix[0,:])
+            print tenant_id
+            print client_id
+        except:
+            tenant_client_res = dfResults[dfResults['tenant_client'] == tenant_client_in]
+            print tenant_client_res
+            tenant_id = tenant_client_in.split('_')[0]
+            client_id = tenant_client_in.split('_')[1]
+
         tenant_client_res = pd.DataFrame.transpose(tenant_client_res).reset_index()
-        print tenant_client_res
-
         return tenant_client_res
-
-
 
     def getHTML(self,params):
         print 'HTML'
