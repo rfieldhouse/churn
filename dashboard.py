@@ -49,6 +49,82 @@ conn = mysql.connector.connect(
          host='localhost',
          database=dbname)
 
+def FormatTable(df):
+
+    df = df.round(2)
+
+    df = df[[
+    'tenant_client',
+    'tenant_id',
+    'client_id',
+    'first_date',
+    'last_date',
+    'num_days',
+    'num_interactions',
+    'frequency',
+    'num_emails',
+    'email_frequency',
+    'num_calls',
+    'call_frequency',
+    'num_meetings',
+    'meeting_frequency',
+    'mean_gap',
+    'max_gap',
+    'min_gap',
+    'start_date',
+    'end_date',
+    'active_count',
+    'subscription_length',
+    'num_periods',
+    'mean_duration',
+    # 'total_duration',
+    # 'min_duration',
+    # 'max_duration',
+    # 'comp',
+    'recency',
+    'churn_no',
+    'churn_yes',
+    'churn_pred',
+    'churned',
+    ]]
+
+    colDict = {
+    'client_id':'Client ID',
+    'num_interactions':'Number of Interactions',
+    'num_emails':' Number of Emails',
+    'num_calls':'Number of Calls',
+    'num_meetings':'Number of Meetings',
+    'mean_gap':'Average Gap Between Interactions (days)',
+    'max_gap':'Maximum Gap Between Interactions (days)',
+    'min_gap':'Minimum Gap Between Interactions (days)',
+    'first_date':'Date of First Interaction',
+    'last_date':'Date of Last Interaction',
+    'num_days':'Length of Relationship (days)',
+    'frequency':'Frequency of Interactions',
+    'email_frequency':'Frequency of Emails',
+    'call_frequency':'Frequency of Calls',
+    'meeting_frequency':'Frequency of Meetings',
+    'tenant_id':'Tenant ID',
+    'num_periods':'Number of Subscription Periods',
+    'mean_duration':'Average Subscription Length (days)',
+    'total_duration':'Length of Subscriptions (all)',
+    'min_duration':'Minimum Length of subscription (days)',
+    'max_duration':'Maximum Length of subscription (days)',
+    'active_count':'Number of Active Subscriptions (days)',
+    'start_date':'Start Date of First Subscription',
+    'end_date':'End Date of Last Subscription',
+    'subscription_length':'Length of Subscriptions (days)',
+    'comp':'comp',
+    'recency':'Recency',
+    'churn_no':'Probability of Not Churning',
+    'churn_yes':'Probability of Churning',
+    'churn_pred':'Churn Prediction (0=no, 1=yes)',
+    'churned':'Current Churn Status (Ground Truth) (0=no, 1=yes)',
+    'tenant_client':'Tenant-Client ID',
+    }
+    df = df.rename(columns=colDict)
+    return df
+
 # Features
 
 dfResults = pickle.load(open("results_int.p","rb"))
@@ -273,10 +349,15 @@ class SimpleApp(server.App):
         except:
             tenant_client_res = dfResults[dfResults['tenant_client'] == tenant_client_in]
             print tenant_client_res
+            print ' '.join(tenant_client_res.columns)
             tenant_id = tenant_client_in.split('_')[0]
             client_id = tenant_client_in.split('_')[1]
 
+        tenant_client_res = tenant_client_res.reset_index()
+        tenant_client_res = FormatTable(tenant_client_res)
         tenant_client_res = pd.DataFrame.transpose(tenant_client_res).reset_index()
+        tenant_client_res.columns = ['Feature','Value']
+        tenant_client_res = tenant_client_res.round(2)
         return tenant_client_res
 
     def getHTML(self,params):
